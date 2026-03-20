@@ -1,0 +1,260 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100vw;
+  background: radial-gradient(circle at center 20%, #1e1b4b 0%, #0f172a 60%, #020617 100%);
+  overflow-y: auto;
+}
+
+.top-container {
+  min-height: 50vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  /* Optional subtle glow at the top */
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+}
+
+.bottom-container {
+  display: flex;
+  flex: 1;
+  width: 85%;
+  margin: 0 auto;
+  padding-bottom: 24px;
+}
+
+.sidebar {
+  width: 250px;
+  background: rgba(15, 23, 42, 0.85);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+}
+
+.sidebar-logo {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-h);
+  margin-bottom: 2.5rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(255,255,255,0.2);
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sidebar-nav li {
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-nav li:hover, .sidebar-nav li.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.grid-container {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: max-content;
+  gap: 24px;
+  padding: 20px;
+  align-items: start;
+}
+
+.grid-cell {
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  gap: 16px;
+  box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s;
+  overflow: hidden;
+}
+
+.grid-cell:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.screen {
+  display: grid;
+  grid-template-columns: repeat(10, 10px);
+  grid-template-rows: repeat(10, 10px);
+  justify-content: space-between;
+  align-content: space-between;
+  background: var(--input-bg);
+  border-radius: 8px;
+  padding: 16px;
+  aspect-ratio: 1;
+  width: 100%;
+  max-width: 260px;
+  margin: 0 auto;
+}
+
+.dot {
+  border-radius: 50%;
+  width: 100%;
+  height: 100%;
+  opacity: 0.85;
+  transition: opacity 0.3s;
+}
+
+.dot:hover {
+  opacity: 1;
+}
+
+.input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+  width: 100%;
+  max-width: 260px;
+}
+
+.input-section label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.70rem;
+  color: var(--text);
+  gap: 4px;
+}
+
+.input-section span {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.input-section input {
+  background: var(--input-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: var(--text-h);
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  outline: none;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.input-section input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-bg);
+}
+
+/* Sidebar forecasts */
+.sidebar-forecasts {
+  margin-top: 10px;
+}
+
+.sidebar-forecasts h3 {
+  color: var(--text-h);
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.sidebar-forecasts ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sidebar-forecasts li {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-h);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.sidebar-forecasts span {
+  color: var(--text);
+  font-weight: 400;
+}
+
+/* Remove Arrows from Number Inputs */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Cell Header and Bookmark Button */
+.cell-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+}
+
+.cell-header h4 {
+  margin: 0;
+  color: var(--text-h);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.important-btn {
+  background: var(--accent-bg);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.important-btn:hover,
+.important-btn.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+.important-btn svg {
+  width: 14px;
+  height: 14px;
+}
