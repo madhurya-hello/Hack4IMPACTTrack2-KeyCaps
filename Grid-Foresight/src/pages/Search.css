@@ -308,6 +308,16 @@
   box-shadow: 0 10px 25px rgba(0, 85, 255, 0.2);
 }
 
+.device-card.is-active-suggested-off {
+  background: rgba(0, 255, 128, 0.05);
+  border-color: rgba(0, 255, 128, 0.3);
+  box-shadow: 0 0 15px rgba(0, 255, 128, 0.1);
+}
+
+.device-card.is-active-suggested-off:hover {
+  box-shadow: 0 10px 25px rgba(0, 255, 128, 0.2);
+}
+
 .device-card > * {
   position: relative;
   z-index: 1;
@@ -335,6 +345,13 @@
   box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
 }
 
+.device-card.is-active-suggested-off .device-card-icon {
+  color: #00ff80;
+  background: rgba(0, 255, 128, 0.1);
+  border-color: rgba(0, 255, 128, 0.2);
+  box-shadow: 0 0 15px rgba(0, 255, 128, 0.3);
+}
+
 .status-dot {
   width: 10px;
   height: 10px;
@@ -350,6 +367,34 @@
 .status-dot.inactive {
   background: #ff3366;
   box-shadow: 0 0 10px #ff3366;
+}
+
+.important-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-dim, #888);
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.important-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.important-btn.is-important {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(255, 215, 0, 0.5);
+  color: #ffd700;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
 }
 
 .device-info {
@@ -393,6 +438,11 @@
   border-color: rgba(0, 243, 255, 0.2);
 }
 
+.device-card.is-active-suggested-off .power-value {
+  color: #00ff80;
+  border-color: rgba(0, 255, 128, 0.2);
+}
+
 .toggle-btn {
   display: flex;
   align-items: center;
@@ -433,6 +483,18 @@
   box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
 }
 
+.btn-on-suggested-off {
+  background: rgba(0, 255, 128, 0.1);
+  border: 1px solid #00ff80;
+  color: #00ff80;
+  box-shadow: 0 0 15px rgba(0, 255, 128, 0.2);
+}
+
+.btn-on-suggested-off:hover {
+  background: rgba(0, 255, 128, 0.2);
+  box-shadow: 0 0 20px rgba(0, 255, 128, 0.4);
+}
+
 .no-devices {
   grid-column: 1 / -1;
   text-align: center;
@@ -441,4 +503,138 @@
   padding: 3rem;
   border: 1px dashed rgba(255,255,255,0.1);
   border-radius: 8px;
+}
+
+/* Timeline Slider Customization */
+.timeline-container {
+  position: relative;
+  width: 100%;
+  height: 30px;
+  display: flex;
+  align-items: center;
+}
+
+.timeline-markers {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 7px; /* compensate for thumb width padding initially */
+  right: 7px;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.timeline-marker {
+  width: 2px;
+  height: 8px;
+  background: rgba(0, 243, 255, 0.3);
+  border-radius: 1px;
+}
+
+.timeline-marker:nth-child(6n + 1) {
+  height: 14px;
+  background: rgba(0, 243, 255, 0.6);
+}
+
+.custom-range-slider {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  outline: none;
+}
+
+.custom-range-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(0, 243, 255, 0.2);
+  border-radius: 2px;
+  border: 1px solid rgba(0, 243, 255, 0.1);
+}
+
+.custom-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 22px;
+  background: var(--neon-cyan, #00f3ff);
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: -10px; /* align center with track */
+  box-shadow: 0 0 10px var(--neon-cyan, #00f3ff), inset 0 0 5px rgba(255,255,255,0.8);
+  border: 2px solid #0a0510;
+  transition: transform 0.1s;
+}
+
+.custom-range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.custom-range-slider::-moz-range-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(0, 243, 255, 0.2);
+  border-radius: 2px;
+}
+
+.custom-range-slider::-moz-range-thumb {
+  width: 12px;
+  height: 22px;
+  background: var(--neon-cyan, #00f3ff);
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 0 10px var(--neon-cyan, #00f3ff);
+  border: 2px solid #0a0510;
+}
+
+/* Red Card Styling for OFF Devices */
+.device-card.is-off {
+  background: rgba(255, 51, 102, 0.05);
+  border-color: rgba(255, 51, 102, 0.3);
+  box-shadow: 0 0 15px rgba(255, 51, 102, 0.1);
+}
+
+.device-card.is-off:hover {
+  box-shadow: 0 10px 25px rgba(255, 51, 102, 0.2);
+}
+
+.device-card.is-off .device-card-icon {
+  color: #ff3366;
+  background: rgba(255, 51, 102, 0.1);
+  border-color: rgba(255, 51, 102, 0.2);
+  box-shadow: 0 0 15px rgba(255, 51, 102, 0.3);
+}
+
+.device-card.is-off .power-value {
+  color: #ff3366;
+  border-color: rgba(255, 51, 102, 0.2);
+}
+
+/* Spin animation for loader */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin-animation {
+  animation: spin 1.5s linear infinite;
+}
+
+/* Hide arrows for number inputs */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }

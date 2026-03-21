@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Power } from 'lucide-react';
+import { ArrowLeft, Power, Bot, Bookmark, Loader } from 'lucide-react';
 import { globalRoomDevices, calculateTotalPower, gadgetTypes, COMPANIES, COMPANY_INFO } from '../deviceData';
 import './Search.css';
 
@@ -18,6 +18,57 @@ function Search() {
   const [selectedRoom, setSelectedRoom] = useState(initialRoom);
 
   const [companyTotalPower, setCompanyTotalPower] = useState(calculateTotalPower(globalRoomDevices[initialCompany]));
+
+  // New states for Timeline and Agent Mode
+  const [timelineHour, setTimelineHour] = useState(12);
+  const [agentMode, setAgentMode] = useState(false);
+  const [headcount, setHeadcount] = useState(45);
+  const [isAgentLoading, setIsAgentLoading] = useState(false);
+
+  useEffect(() => {
+    if (agentMode) {
+      setIsAgentLoading(true);
+      let allDevices = [];
+      const rooms = COMPANY_INFO[selectedCompany]?.rooms || [];
+      rooms.forEach(room => {
+        const roomDevs = globalRoomDevices[selectedCompany]?.[room] || [];
+        roomDevs.forEach(dev => {
+          allDevices.push({
+            device_id: dev.id || `dev-${Math.random().toString(36).substr(2, 9)}`,
+            room_no: room,
+            device_name: dev.label,
+            power_usage: dev.power,
+            is_important: !!dev.is_important,
+            is_device_active: dev.active !== false
+          });
+        });
+      });
+
+      const payload = {
+        company_name: selectedCompany,
+        current_total_power: parseFloat(companyTotalPower.toFixed(2)),
+        lat: 20.2961,
+        lon: 85.8245,
+        headcount: headcount,
+        devices: allDevices
+      };
+
+      console.log('Power Agent Triggered API - Payload:', payload);
+
+      fetch('http://localhost:3000/api/energy/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      }).catch(() => {}); // Backend currently inactive
+
+      setTimeout(() => {
+        setIsAgentLoading(false);
+      }, 3000);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agentMode, timelineHour]);
 
   
   const initialFilters = {};
@@ -50,6 +101,21 @@ function Search() {
     }));
   };
 
+  const toggleDeviceImportant = (id) => {
+    setDevices(prev => prev.map(dev => {
+      if (dev.id === id) {
+        const updatedDev = { ...dev, is_important: !dev.is_important };
+        // Sync back to global object
+        const globalDev = globalRoomDevices[selectedCompany]?.[selectedRoom]?.find(d => d.id === id);
+        if (globalDev) {
+          globalDev.is_important = updatedDev.is_important;
+        }
+        return updatedDev;
+      }
+      return dev;
+    }));
+  };
+
   const filteredDevices = devices.filter(dev => selectedFilters[dev.type] !== false);
 
   return (
@@ -63,6 +129,27 @@ function Search() {
           </button>
         </div>
         
+        <div className="filter-section">
+          <h3 className="filter-title">Company</h3>
+          <div className="dropdown-container">
+            <select 
+              value={selectedCompany} 
+              onChange={(e) => {
+                const newComp = e.target.value;
+                setSelectedCompany(newComp);
+                setSelectedRoom(COMPANY_INFO[newComp].rooms[0]);
+                setCompanyTotalPower(calculateTotalPower(globalRoomDevices[newComp]));
+              }}
+              className="room-select"
+            >
+              {COMPANIES.map(comp => (
+                <option key={comp} value={comp}>{comp}</option>
+              ))}
+            </select>
+            <div className="dropdown-arrow">▼</div>
+          </div>
+        </div>
+
         <div className="filter-section">
           <h3 className="filter-title">Location</h3>
           <div className="dropdown-container">
@@ -103,44 +190,96 @@ function Search() {
       <main className="search-main">
         <header className="search-header glass-panel glow-cyan">
           <h1 className="search-title">{selectedRoom} <span className="title-suffix">Devices</span><span className="blink-cursor">_</span></h1>
-          <div className="search-stats">
-            <span className="stat-badge">Total: {filteredDevices.length}</span>
-            <span className="stat-badge active">Active: {filteredDevices.filter(d => d.active).length}</span>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div className="glass-panel" style={{ padding: '0.4rem 1rem', borderRadius: '8px', border: '1px solid rgba(0, 243, 255, 0.3)', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center' }}>
+              <span style={{ color: '#a0aec0', fontSize: '0.9rem', marginRight: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Headcount:</span>
+              <input 
+                type="number" 
+                value={headcount} 
+                onChange={(e) => setHeadcount(Number(e.target.value))} 
+                style={{ width: '50px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(0, 243, 255, 0.3)', borderRadius: '4px', color: '#00f3ff', fontSize: '1.1rem', outline: 'none', fontWeight: 'bold', textAlign: 'center', padding: '0.2rem' }} 
+              />
+            </div>
+            <div className="glass-panel" style={{ padding: '0.5rem 1.5rem', borderRadius: '8px', border: '1px solid rgba(0, 243, 255, 0.3)', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center' }}>
+              <span style={{ color: '#a0aec0', fontSize: '0.9rem', marginRight: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Total Power Consumption:</span>
+              <span style={{ color: '#00f3ff', fontSize: '1.25rem', fontWeight: 'bold', textShadow: '0 0 10px rgba(0,243,255,0.5)' }}>{companyTotalPower.toFixed(2)} kW</span>
+            </div>
           </div>
         </header>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', marginTop: '1rem' }}>
-          <div className="dropdown-container" style={{ width: '250px' }}>
-            <select 
-              value={selectedCompany} 
-              onChange={(e) => {
-                const newComp = e.target.value;
-                setSelectedCompany(newComp);
-                setSelectedRoom(COMPANY_INFO[newComp].rooms[0]);
-                setCompanyTotalPower(calculateTotalPower(globalRoomDevices[newComp]));
-              }}
-              className="room-select"
-              style={{ width: '100%', border: '1px solid rgba(0, 243, 255, 0.4)', background: 'rgba(5, 15, 30, 0.7)' }}
-            >
-              {COMPANIES.map(comp => (
-                <option key={comp} value={comp}>{comp}</option>
-              ))}
-            </select>
-            <div className="dropdown-arrow">▼</div>
+        <div style={{ display: 'flex', width: '100%', marginBottom: '1rem', marginTop: '1rem', gap: '1rem' }}>
+          <div style={{ width: '80%', padding: '0.75rem 1.5rem', background: 'rgba(5, 15, 30, 0.7)', borderRadius: '8px', border: '1px solid rgba(0, 243, 255, 0.3)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }} className="glass-panel glow-blue">
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: '#00f3ff', fontSize: '0.75rem', fontFamily: 'monospace' }}>
+              <span>00:00</span>
+              <span style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{String(timelineHour).padStart(2, '0')}:00</span>
+              <span>23:00</span>
+            </div>
+            <div className="timeline-container">
+              <div className="timeline-markers">
+                {Array.from({ length: 24 }).map((_, i) => (
+                  <div key={i} className="timeline-marker"></div>
+                ))}
+              </div>
+              <input 
+                type="range" 
+                min="0" 
+                max="23" 
+                step="1"
+                value={timelineHour}
+                onChange={(e) => setTimelineHour(parseInt(e.target.value))}
+                className="custom-range-slider"
+              />
+            </div>
           </div>
-          <div className="glass-panel" style={{ padding: '0.5rem 1.5rem', borderRadius: '8px', border: '1px solid rgba(0, 243, 255, 0.3)', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center' }}>
-            <span style={{ color: '#a0aec0', fontSize: '0.9rem', marginRight: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Total Power Consumption:</span>
-            <span style={{ color: '#00f3ff', fontSize: '1.25rem', fontWeight: 'bold', textShadow: '0 0 10px rgba(0,243,255,0.5)' }}>{companyTotalPower.toFixed(2)} kW</span>
+          <div style={{ width: '20%', padding: '0.5rem', background: 'rgba(5, 15, 30, 0.7)', borderRadius: '8px', border: '1px solid rgba(0, 243, 255, 0.3)', display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="glass-panel glow-cyan">
+            <button 
+              style={{ 
+                width: '100%',
+                height: '100%',
+                padding: '0.4rem 0.8rem', 
+                background: agentMode ? 'rgba(0, 243, 255, 0.2)' : 'transparent', 
+                border: `1px solid ${agentMode ? '#00f3ff' : 'rgba(0, 243, 255, 0.5)'}`, 
+                color: agentMode ? '#00f3ff' : '#a0aec0', 
+                borderRadius: '6px', 
+                cursor: 'pointer', 
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                transition: 'all 0.3s ease',
+                boxShadow: agentMode ? '0 0 15px rgba(0, 243, 255, 0.4)' : 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem'
+              }} 
+              onClick={() => setAgentMode(!agentMode)}
+              disabled={isAgentLoading}
+            >
+              {isAgentLoading ? (
+                <Loader size={28} className="spin-animation" color="#fff" />
+              ) : (
+                <Bot size={28} color={agentMode ? '#fff' : 'currentColor'} />
+              )}
+              <span style={{ fontSize: '0.95rem', color: agentMode || isAgentLoading ? '#fff' : 'inherit' }}>
+                {isAgentLoading ? 'Analyzing...' : 'Power Agent'}
+              </span>
+            </button>
           </div>
         </div>
 
         <div className="devices-grid glass-panel glow-blue">
           {filteredDevices.length > 0 ? (
             filteredDevices.map(device => (
-              <div key={device.id} className={`device-card ${device.active ? 'is-active' : ''}`}>
+              <div key={device.id} className={`device-card ${device.active ? (device.suggested_active !== false ? 'is-active' : 'is-active-suggested-off') : 'is-off'}`}>
                 <div className="device-card-header">
                   <div className="device-card-icon">{device.iconLg || device.icon}</div>
-                  <div className={`status-dot ${device.active ? 'active' : 'inactive'}`}></div>
+                  <button 
+                    className={`important-btn ${device.is_important ? 'is-important' : ''}`}
+                    onClick={() => toggleDeviceImportant(device.id)}
+                  >
+                    <Bookmark size={14} fill={device.is_important ? '#ffd700' : 'none'} />
+                    <span>Important</span>
+                  </button>
                 </div>
                 <div className="device-info">
                   <h4 className="device-name">{device.label}</h4>
@@ -150,7 +289,7 @@ function Search() {
                   </div>
                 </div>
                 <button 
-                  className={`toggle-btn ${device.active ? 'btn-on' : 'btn-off'}`}
+                  className={`toggle-btn ${device.active ? (device.suggested_active !== false ? 'btn-on' : 'btn-on-suggested-off') : 'btn-off'}`}
                   onClick={() => toggleDeviceActive(device.id)}
                 >
                   <Power size={14} />

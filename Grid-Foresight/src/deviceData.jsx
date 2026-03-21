@@ -57,6 +57,8 @@ export const generateGlobalDevices = () => {
                 allDevices.push({
                     ...g,
                     active: Math.random() > 0.4, // randomly ON or OFF
+                    suggested_active: Math.random() > 0.4,
+                    is_important: false,
                     label: `${g.type} ${i + 1}`
                 });
             }
