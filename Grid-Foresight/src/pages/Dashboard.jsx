@@ -7,7 +7,8 @@ import {
 } from 'lucide-react';
 import '../App.css';
 import { globalRoomDevices, calculateTotalPower, COMPANIES, COMPANY_INFO, gadgetTypes } from '../deviceData';
-
+import CompanyPowerGraph from "../components/CompanyPowerGraph.jsx";
+<components></components>
 function Dashboard() {
   const navigate = useNavigate();
 
@@ -102,23 +103,24 @@ function Dashboard() {
         
         <div className="bottom-container">
           {/* Bottom Left - Remains Telemetry placeholder */}
-          <div className="sub-container bottom-left glass-panel glow-blue">
+          <div 
+            className="sub-container bottom-left glass-panel glow-blue"
+              style={{ display: 'flex', flexDirection: 'column' }}
+          >
             <h2 className="panel-title">Main Telemetry</h2>
-            <div className="panel-content" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem' }}>
-               <div className="stat-card stat-horizontal" style={{ padding: '1.5rem', background: 'rgba(0, 243, 255, 0.1)', border: '1px solid rgba(0, 243, 255, 0.3)' }}>
-                 <span className="stat-icon"><Activity size={32} color="#00f3ff" /></span>
-                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                   <span style={{ fontSize: '0.8rem', color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '1px' }}>Total Facility Power</span>
-                   <span className="stat-val" style={{ fontSize: '2rem', color: '#00f3ff', textShadow: '0 0 10px rgba(0,243,255,0.5)' }}>
-                     {totalPower.toFixed(2)} kW
-                   </span>
-                 </div>
-               </div>
-               <div className="chart-placeholder" style={{ flex: 1 }}>
-                 Telemetry Graph Area
-               </div>
-            </div>
-          </div>
+
+              <div 
+              className="panel-content" 
+              style={{ flex: 1, padding: '0.5rem' }}
+                >
+    <div style={{ width: '100%', height: '100%', minHeight: '350px' }}>
+      <CompanyPowerGraph 
+        key={selectedCompany}
+        company={selectedCompany} 
+      />
+    </div>
+  </div>
+</div>
 
           {/* Bottom Right - Rooms List (Scrollable) */}
           <div className="sub-container bottom-right glass-panel glow-purple" style={{ display: 'flex', flexDirection: 'column' }}>
