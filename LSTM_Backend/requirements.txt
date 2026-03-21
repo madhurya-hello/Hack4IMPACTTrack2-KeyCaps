@@ -1,0 +1,15 @@
+# Web Framework
+flask
+flask-cors
+python-dotenv
+
+# Machine Learning & Inference
+tensorflow
+pandas
+numpy
+scikit-learn
+joblib
+
+# Database Interaction
+sqlalchemy
+psycopg2-binary
