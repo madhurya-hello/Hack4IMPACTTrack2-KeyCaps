@@ -1,20 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
 :root {
-  --text: #9ca3af;
-  --text-h: #f3f4f6;
-  --bg: #0f172a;
-  --border: #334155;
-  --accent: #3b82f6;
-  --accent-bg: rgba(59, 130, 246, 0.15);
-  --cell-bg: rgba(30, 41, 59, 0.7);
-  --input-bg: rgba(15, 23, 42, 0.6);
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* Futuristic Gaming Palette */
+  --bg-color: #050508;
+  --panel-bg: rgba(15, 15, 25, 0.75);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  
+  /* Text */
+  --text-main: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-h: #ffffff;
+  
+  /* Neons */
+  --neon-cyan: #00f3ff;
+  --neon-magenta: #ff0055;
+  --neon-blue: #0055ff;
+  --neon-purple: #af38ff;
+  
+  --font-heading: 'Rajdhani', sans-serif;
+  --font-body: 'Inter', sans-serif;
 }
 
 body {
   margin: 0;
-  font-family: var(--sans);
-  background: var(--bg);
-  color: var(--text);
+  font-family: var(--font-body);
+  background: var(--bg-color);
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(0, 243, 255, 0.04), transparent 30%),
+    radial-gradient(circle at 85% 30%, rgba(255, 0, 85, 0.04), transparent 30%),
+    linear-gradient(to right, rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 50px 50px, 50px 50px;
+  color: var(--text-main);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -27,14 +45,25 @@ body {
   flex-direction: column;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
 * {
   box-sizing: border-box;
 }
 
-/* Common glass utility */
-.glass {
-  background: var(--cell-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
+/* Scrollbar styles for futuristic look */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.3);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neon-cyan);
 }
