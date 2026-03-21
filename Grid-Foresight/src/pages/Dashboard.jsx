@@ -91,7 +91,12 @@ function Dashboard() {
             <div className="panel-content gadget-panel-content">
               <div className="gadget-grid">
                 {gadgets.map((gadget) => (
-                  <div key={gadget.id} className="gadget-card">
+                  <div 
+                    key={gadget.id} 
+                    className="gadget-card"
+                    onClick={() => navigate(`/search?room=All%20Rooms&company=${encodeURIComponent(selectedCompany)}&device=${encodeURIComponent(gadget.label)}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <div className="gadget-icon">{gadget.icon}</div>
                     <div className="gadget-label">{gadget.label}</div>
                   </div>

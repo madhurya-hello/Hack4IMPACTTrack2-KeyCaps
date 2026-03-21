@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Power, Bot, Bookmark, Loader } from 'lucide-react';
 import { globalRoomDevices, calculateTotalPower, gadgetTypes, COMPANIES, COMPANY_INFO } from '../deviceData';
+import * as jose from 'jose';
 import './Search.css';
 
 function Search() {
@@ -12,7 +13,7 @@ function Search() {
   const initialCompany = searchParams.get('company') || COMPANIES[0];
   const [selectedCompany, setSelectedCompany] = useState(initialCompany);
 
-  const validRooms = COMPANY_INFO[initialCompany].rooms;
+  const validRooms = ['All Rooms', ...COMPANY_INFO[initialCompany].rooms];
   const urlRoom = searchParams.get('room');
   const initialRoom = validRooms.includes(urlRoom) ? urlRoom : validRooms[0];
   const [selectedRoom, setSelectedRoom] = useState(initialRoom);
@@ -24,6 +25,28 @@ function Search() {
   const [agentMode, setAgentMode] = useState(false);
   const [headcount, setHeadcount] = useState(45);
   const [isAgentLoading, setIsAgentLoading] = useState(false);
+  const [secureSession, setSecureSession] = useState(null);
+
+  useEffect(() => {
+    async function setupSecureSession() {
+      try {
+        const { publicKey, privateKey } = await jose.generateKeyPair('ECDH-ES+A256KW', {
+          crv: 'P-256',
+        });
+        const exportedPublicKey = await jose.exportJWK(publicKey);
+        const response = await fetch('/api/handshake', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientPublicKey: exportedPublicKey }),
+        });
+        const { serverPublicKey } = await response.json();
+        setSecureSession({ privateKey, serverPublicKey });
+      } catch (e) {
+        console.error("Secure session setup failed", e);
+      }
+    }
+    setupSecureSession();
+  }, []);
 
   useEffect(() => {
     if (agentMode) {
@@ -39,7 +62,7 @@ function Search() {
             device_name: dev.label,
             power_usage: dev.power,
             is_important: !!dev.is_important,
-            is_device_active: dev.active !== false
+            is_device_active: dev.active && dev.suggested_active !== false
           });
         });
       });
@@ -53,15 +76,36 @@ function Search() {
         devices: allDevices
       };
 
-      console.log('Power Agent Triggered API - Payload:', payload);
+      console.log('Power Agent Triggered API - Payload (Plaintext):', payload);
 
-      fetch('http://localhost:3000/api/energy/update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      }).catch(() => {}); // Backend currently inactive
+      const sendSecurePayload = async () => {
+        try {
+          if (!secureSession) {
+            console.warn("Secure session not established. Aborting secure send.");
+            return;
+          }
+
+          const serverKey = await jose.importJWK(secureSession.serverPublicKey, 'ECDH-ES+A256KW');
+          
+          const jwe = await new jose.CompactEncrypt(new TextEncoder().encode(JSON.stringify(payload)))
+            .setProtectedHeader({ alg: 'ECDH-ES+A256KW', enc: 'A256GCM' })
+            .encrypt(serverKey);
+
+          console.log('Power Agent Triggered API - Payload (Encrypted):', { encryptedData: jwe });
+
+          fetch('http://localhost:3000/api/energy/update', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ encryptedData: jwe })
+          }).catch(() => {}); // Backend currently inactive
+        } catch (error) {
+          console.error("Encryption or fetch failed", error);
+        }
+      };
+
+      sendSecurePayload();
 
       setTimeout(() => {
         setIsAgentLoading(false);
@@ -71,29 +115,54 @@ function Search() {
   }, [agentMode, timelineHour]);
 
   
+  const urlDevice = searchParams.get('device');
   const initialFilters = {};
-  gadgetTypes.forEach(t => { initialFilters[t.id] = true; });
+  gadgetTypes.forEach(t => { 
+    initialFilters[t.id] = urlDevice ? (t.id === urlDevice) : true; 
+  });
   const [selectedFilters, setSelectedFilters] = useState(initialFilters);
 
   const toggleFilter = (id) => {
     setSelectedFilters(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const [devices, setDevices] = useState(globalRoomDevices[selectedCompany]?.[selectedRoom] || []);
+  const getDevicesForRoom = (comp, rm) => {
+    if (rm === 'All Rooms') {
+      let allDevs = [];
+      const rooms = COMPANY_INFO[comp]?.rooms || [];
+      rooms.forEach(room => {
+        allDevs = allDevs.concat(globalRoomDevices[comp]?.[room] || []);
+      });
+      return allDevs;
+    }
+    return globalRoomDevices[comp]?.[rm] || [];
+  };
+
+  const [devices, setDevices] = useState(getDevicesForRoom(selectedCompany, selectedRoom));
 
   useEffect(() => {
-    setDevices(globalRoomDevices[selectedCompany]?.[selectedRoom] || []);
+    setDevices(getDevicesForRoom(selectedCompany, selectedRoom));
   }, [selectedCompany, selectedRoom]);
 
   const toggleDeviceActive = (id) => {
     setDevices(prev => prev.map(dev => {
       if (dev.id === id) {
-        const updatedDev = { ...dev, active: !dev.active };
+        const updatedDev = { ...dev };
+        if (dev.active && dev.suggested_active === false) {
+          updatedDev.suggested_active = true;
+        } else {
+          updatedDev.active = !dev.active;
+        }
         // Sync back to global object
-        const globalDev = globalRoomDevices[selectedCompany]?.[selectedRoom]?.find(d => d.id === id);
-        if (globalDev) {
-          globalDev.active = updatedDev.active;
-          setCompanyTotalPower(calculateTotalPower(globalRoomDevices[selectedCompany]));
+        const allRooms = COMPANY_INFO[selectedCompany].rooms;
+        for (const r of allRooms) {
+          const globalDev = globalRoomDevices[selectedCompany]?.[r]?.find(d => d.id === id);
+          if (globalDev) {
+            globalDev.active = updatedDev.active;
+            globalDev.suggested_active = updatedDev.suggested_active;
+            setCompanyTotalPower(calculateTotalPower(globalRoomDevices[selectedCompany]));
+            break;
+          }
         }
         return updatedDev;
       }
@@ -106,9 +175,13 @@ function Search() {
       if (dev.id === id) {
         const updatedDev = { ...dev, is_important: !dev.is_important };
         // Sync back to global object
-        const globalDev = globalRoomDevices[selectedCompany]?.[selectedRoom]?.find(d => d.id === id);
-        if (globalDev) {
-          globalDev.is_important = updatedDev.is_important;
+        const allRooms = COMPANY_INFO[selectedCompany].rooms;
+        for (const r of allRooms) {
+          const globalDev = globalRoomDevices[selectedCompany]?.[r]?.find(d => d.id === id);
+          if (globalDev) {
+            globalDev.is_important = updatedDev.is_important;
+            break;
+          }
         }
         return updatedDev;
       }
@@ -137,7 +210,7 @@ function Search() {
               onChange={(e) => {
                 const newComp = e.target.value;
                 setSelectedCompany(newComp);
-                setSelectedRoom(COMPANY_INFO[newComp].rooms[0]);
+                setSelectedRoom('All Rooms');
                 setCompanyTotalPower(calculateTotalPower(globalRoomDevices[newComp]));
               }}
               className="room-select"
@@ -158,7 +231,7 @@ function Search() {
               onChange={(e) => setSelectedRoom(e.target.value)}
               className="room-select"
             >
-              {COMPANY_INFO[selectedCompany].rooms.map(room => (
+              {['All Rooms', ...COMPANY_INFO[selectedCompany].rooms].map(room => (
                 <option key={room} value={room}>{room}</option>
               ))}
             </select>
@@ -209,15 +282,15 @@ function Search() {
 
         <div style={{ display: 'flex', width: '100%', marginBottom: '1rem', marginTop: '1rem', gap: '1rem' }}>
           <div style={{ width: '80%', padding: '0.75rem 1.5rem', background: 'rgba(5, 15, 30, 0.7)', borderRadius: '8px', border: '1px solid rgba(0, 243, 255, 0.3)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }} className="glass-panel glow-blue">
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: '#00f3ff', fontSize: '0.75rem', fontFamily: 'monospace' }}>
-              <span>00:00</span>
-              <span style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{String(timelineHour).padStart(2, '0')}:00</span>
-              <span>23:00</span>
-            </div>
-            <div className="timeline-container">
+            <div className="timeline-container" style={{ marginTop: '1.5rem' }}>
               <div className="timeline-markers">
                 {Array.from({ length: 24 }).map((_, i) => (
-                  <div key={i} className="timeline-marker"></div>
+                  <div key={i} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <span style={{ position: 'absolute', top: i === timelineHour ? '-30px' : '-22px', fontSize: i === timelineHour ? '12px' : '9px', color: i === timelineHour ? '#00f3ff' : 'rgba(255,255,255,0.4)', fontWeight: i === timelineHour ? 'bold' : 'normal', fontFamily: 'monospace', transform: 'translateX(-50%)', left: '50%' }}>
+                      {String(i).padStart(2, '0')}:00
+                    </span>
+                    <div className="timeline-marker" style={{ height: i === timelineHour ? '14px' : '8px', background: i === timelineHour ? 'rgba(0, 243, 255, 0.8)' : '' }}></div>
+                  </div>
                 ))}
               </div>
               <input 
@@ -293,7 +366,7 @@ function Search() {
                   onClick={() => toggleDeviceActive(device.id)}
                 >
                   <Power size={14} />
-                  <span>{device.active ? 'ON' : 'OFF'}</span>
+                  <span>{device.active && device.suggested_active !== false ? 'ON' : 'OFF'}</span>
                 </button>
               </div>
             ))

@@ -91,7 +91,9 @@ export const calculateTotalPower = (roomDevicesMap) => {
     let total = 0;
     Object.values(roomDevicesMap).forEach(roomDevices => {
         roomDevices.forEach(device => {
-            if (device.active) {
+            // Include power only if it's visually ON 
+            // (device.active is true AND device.suggested_active is not false)
+            if (device.active && device.suggested_active !== false) {
                 total += device.power;
             }
         });
