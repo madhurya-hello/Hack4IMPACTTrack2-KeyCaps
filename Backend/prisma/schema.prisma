@@ -1,0 +1,43 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Company {
+  name            String      @id // Name is now the primary key
+  maxPowerLimit   Float       
+  maxCapacity     Int         
+  energyLogs      EnergyLog[]
+}
+
+// prisma/schema.prisma
+
+
+
+model EnergyLog {
+  id                String   @id @default(uuid())
+  companyName       String   
+  timestamp         DateTime @default(now())
+  
+  totalPowerDraw    Float    
+  // headcount removed from here
+  temperature       Float
+  humidity          Int
+  isHoliday         Boolean
+  isWeekend         Boolean
+  
+  predictedPeak     Float?
+  limitExceeded     Boolean  @default(false)
+  
+  company           Company  @relation(fields: [companyName], references: [name], onDelete: Cascade)
+
+  @@index([companyName, timestamp]) 
+}
+
+// Add this to your prisma/schema.prisma
+
