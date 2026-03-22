@@ -20,7 +20,7 @@ const GADGETS_TEMPLATE = [
     { type: "Desk Lamp", icon: <Lamp size={20} />, iconLg: <Lamp size={32} />, power: 0.01 }
 ];
 
-export const COMPANIES = ["Tech Nova", "Green Grid", "Solaris Co"];
+export const COMPANIES = ["TechNova", "GreenGrid", "SolarisCo"];
 
 const generateCompanyRooms = (numRooms) => {
     const rooms = [];
@@ -31,15 +31,15 @@ const generateCompanyRooms = (numRooms) => {
 };
 
 export const COMPANY_INFO = {
-    "Solaris Co": {
+    "SolarisCo": {
         rooms: generateCompanyRooms(12),
         multiplier: 6 // Max power ~6.24 kW
     },
-    "Tech Nova": {
+    "TechNova": {
         rooms: generateCompanyRooms(18),
         multiplier: 9 // Max power ~9.36 kW
     },
-    "Green Grid": {
+    "GreenGrid": {
         rooms: generateCompanyRooms(36),
         multiplier: 18 // Max power ~18.72 kW
     }

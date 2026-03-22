@@ -3,8 +3,25 @@
 import { Router } from "express";
 import energyController from "../controllers/energy.controller.js";
 import weatherService from "../services/weather.service.js"; // Import the service directly for testing
-
+import cryptoService from "../services/crypto.service.js";
+import { randomUUID } from "crypto";
 const router = Router();
+
+// --- NEW HANDSHAKE ROUTE ---
+router.post("/handshake", async (req, res) => {
+  try {
+    await cryptoService.init();
+    const clientId = randomUUID(); // Now TypeScript will recognize this
+    await cryptoService.saveClientKey(clientId, req.body.clientPublicKey);
+
+    res.status(200).json({
+      serverPublicKey: cryptoService.serverPublicKeyJwk,
+      clientId,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 // Your existing update route
 router.post("/update", energyController.receiveEnergyData);

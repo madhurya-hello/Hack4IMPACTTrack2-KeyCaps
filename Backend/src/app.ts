@@ -17,7 +17,9 @@ app.use(express.json());
 app.use("/api/energy", energyRoutes);
 
 app.get("/health", (req, res) => {
-  res.status(200).json({ status: "OK", timestamp: new Date().toISOString() });
+  res
+    .status(200)
+    .json({ status: "OK", timestamp: new Date().toLocaleString() });
 });
 
 export default app;

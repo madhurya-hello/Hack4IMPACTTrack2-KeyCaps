@@ -3,12 +3,14 @@ import axios from "axios";
 
 class MLService {
   private readonly mlApiUrl =
-    process.env.ML_MODEL_URL || "http://localhost:5000/predict";
+    process.env.ML_MODEL_URL || "http://localhost:5001/predict";
 
   async getPeakPrediction(features: any): Promise<number> {
     try {
       // 1. Call the Flask /predict endpoint
+      console.log(`DEBUG: Sending features to Flask at ${this.mlApiUrl}`); // Add this
       const response = await axios.post(this.mlApiUrl, features);
+      console.log("DEBUG: Flask response status:", response.data.status); // Add this
       const result = response.data;
 
       // 2. Handle the "Success" case
@@ -21,6 +23,7 @@ class MLService {
       console.log(`ML History Building: ${result.message}`);
       return features.power_consumption * 1.05;
     } catch (error: any) {
+      console.warn("DEBUG: ML Backend Unreachable, using fallback power * 1.1"); // Add this
       console.error("ML Backend Connection Error:", error.message);
       // Fallback if Flask server is down
       return features.power_consumption * 1.1;

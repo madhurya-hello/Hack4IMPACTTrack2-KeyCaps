@@ -199,6 +199,8 @@
   flex-direction: column;
   gap: 1.5rem;
   overflow: hidden;
+  height: 100%;
+  max-height: calc(100vh - 3rem); /* Subtracting page padding */
 }
 
 .search-header {
@@ -251,6 +253,7 @@
   border-radius: 12px;
   padding: 2rem 2rem 3rem 2rem;
   overflow-y: auto;
+  min-height: 0; /* Important for flex child scrolling */
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 1.5rem;
@@ -638,3 +641,75 @@ input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* Agent Report Popup */
+.agent-report-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  padding: 2rem; /* Add padding so it doesn't touch screen edges on small screens */
+  box-sizing: border-box;
+}
+
+.agent-report-modal {
+  width: 100%;
+  max-width: 500px; /* Use max-width instead of fixed width */
+  max-height: 90vh; /* Ensure it never exceeds screen height */
+  overflow-y: auto; /* Allow scrolling inside report if device list is long */
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  background: rgba(5, 15, 30, 0.95) !important;
+  border: 1px solid rgba(0, 243, 255, 0.5) !important;
+  text-align: left;
+}
+
+.report-header {
+  display: flex; align-items: center; gap: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(0, 243, 255, 0.2);
+  padding-bottom: 1rem;
+}
+
+.report-header h3 { font-family: 'Orbitron', sans-serif; letter-spacing: 2px; color: #fff; }
+.report-status { color: #00f3ff; }
+
+.report-summary { color: #a0aec0; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem; }
+
+.actions-list {
+  max-height: 250px; /* Limit the list height */
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  padding-right: 0.5rem;
+}
+
+/* Custom Scrollbar for the list inside the modal */
+.actions-list::-webkit-scrollbar {
+  width: 4px;
+}
+.actions-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 243, 255, 0.3);
+  border-radius: 2px;
+}
+
+.actions-title { color: #00f3ff; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem; }
+.action-item { color: #fff; margin-bottom: 0.5rem; font-family: monospace; display: flex; gap: 0.5rem; align-items: center; }
+.action-bullet { color: #ff00ff; font-size: 0.6rem; }
+
+.report-close-btn {
+  width: 100%; padding: 0.8rem;
+  background: transparent;
+  border: 1px solid #00f3ff;
+  color: #00f3ff;
+  font-weight: bold; cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.report-close-btn:hover { background: rgba(0, 243, 255, 0.2); box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); }

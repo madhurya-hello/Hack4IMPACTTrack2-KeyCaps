@@ -9,51 +9,42 @@ export interface WeatherData {
 
 class WeatherService {
   private readonly apiKey = process.env.OPENWEATHER_API_KEY;
-  // One Call 3.0 Timemachine endpoint supports specific timestamps
-  private readonly baseUrl =
-    "https://api.openweathermap.org/data/3.0/onecall/timemachine";
 
-  /**
-   * Fetches weather for a 30-minute future offset from a given timestamp.
-   * @param lat Latitude
-   * @param lon Longitude
-   * @param timestamp Starting Unix timestamp (seconds)
-   */
+  // Use the 2.5 API version which is included in the basic free plan
+  private readonly baseUrl = "https://api.openweathermap.org/data/2.5/weather";
+
   async getFutureWeather(
     lat: number,
     lon: number,
-    timestamp?: number,
+    _timestamp?: number, // Underscore indicates unused for now in 2.5
   ): Promise<WeatherData> {
     try {
-      // If no timestamp is provided, use the current time
-      const baseTime = timestamp || Math.floor(Date.now() / 1000);
-
-      // Calculate target time: 30 minutes (1800 seconds) in the future
-      const targetTime = baseTime + 1800;
+      console.log(`DEBUG: Fetching 2.5 Weather for Lat:${lat} Lon:${lon}`);
 
       const response = await axios.get(this.baseUrl, {
         params: {
           lat: lat,
           lon: lon,
-          dt: targetTime,
           appid: this.apiKey,
           units: "metric",
         },
       });
 
-      // One Call 3.0 returns data in a 'data' array for the requested timestamp
-      const weatherPoint = response.data.data[0];
+      // The 2.5 response structure is different from 3.0
+      const { temp, humidity } = response.data.main;
+      console.log("DEBUG: Weather API 2.5 Data Received:", { temp, humidity });
 
       return {
-        temperature: weatherPoint.temp,
-        humidity: weatherPoint.humidity,
+        temperature: temp,
+        humidity: humidity,
       };
     } catch (error: any) {
+      console.warn("DEBUG: Weather API Error, using fallback (25C/50%)");
       console.error(
-        `Failed to fetch future weather for [${lat}, ${lon}]:`,
-        error.message,
+        `Failed to fetch weather:`,
+        error.response?.data || error.message,
       );
-      // Fallback values for hackathon stability
+
       return { temperature: 25, humidity: 50 };
     }
   }
